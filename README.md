@@ -22,3 +22,4 @@ Changes required:
 3-Create a login and register page
 
 To edit changes, add the reaction to which number you will solve. Please also add suggestions. Thanks.
+https://discord.gg/Xpzga8QjKf
