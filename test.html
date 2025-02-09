@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Page with Mouse Tracker</title>
+  <style>
+    #coordinates {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      padding: 5px;
+      background: #eee;
+      border: 1px solid #ccc;
+    }
+    body {
+      background-image: url('Screenshot 2025-02-08 223011.png');
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: 100% 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="coordinates">Move your mouse around!</div>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    // Mouse move event to show coordinates
+    document.addEventListener('mousemove', function(e) {
+      const coordinates = document.getElementById('coordinates');
+      coordinates.textContent = `X: ${e.clientX}, Y: ${e.clientY}`;
+    });
+
+    const canvas = document.getElementById('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Resize canvas when window is resized
+    window.addEventListener('resize', function() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    let currentCircle = null;
+    let blueCircles = [];  // To store all the blue circles
+
+    // Click event to create a red dot or handle navigation
+    canvas.addEventListener('click', function(e) {
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Check if clicked inside any blue circle
+      for (let i = 0; i < blueCircles.length; i++) {
+        const dx = x - blueCircles[i].x;
+        const dy = y - blueCircles[i].y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // If clicked inside a blue circle, redirect to p2.html
+        if (distance <= 20) {
+          window.location.href = 'p2.html';
+          return;
+        }
+      }
+
+      // Check if clicked inside current red circle
+      if (currentCircle) {
+        const dx = x - currentCircle.x;
+        const dy = y - currentCircle.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // If clicked inside the red circle, redirect to index.html
+        if (distance <= 20) {
+          window.location.href = 'index.html';
+          return;
+        }
+      }
+
+      // Clear the canvas to redraw all circles
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw all existing blue circles
+      blueCircles.forEach(function(blueCircle) {
+        ctx.beginPath();
+        ctx.arc(blueCircle.x, blueCircle.y, 20, 0, 2 * Math.PI, true);
+        ctx.fillStyle = '#0000FF'; // Blue color
+        ctx.fill();
+        ctx.closePath();
+      });
+
+      // Always draw the red dot
+      currentCircle = { x, y }; // Store the red dot position
+      sessionStorage.setItem('circleX', x);
+      sessionStorage.setItem('circleY', y);
+      sessionStorage.setItem('circleColor', '#FF0000'); // Store as red
+
+      ctx.beginPath();
+      ctx.arc(x, y, 20, 0, 2 * Math.PI, true);
+      ctx.fillStyle = '#FF0000'; // Red color
+      ctx.fill();
+      ctx.closePath();
+    });
+
+    // Page load event to handle stored circles (if any)
+    window.addEventListener('load', function() {
+      const ctx = canvas.getContext('2d');
+
+      // Load stored blue circles from localStorage
+      const storedBlueCircles = localStorage.getItem('blueCircles');
+      if (storedBlueCircles) {
+        blueCircles = JSON.parse(storedBlueCircles);
+      }
+
+      // Draw all existing blue circles
+      blueCircles.forEach(function(blueCircle) {
+        ctx.beginPath();
+        ctx.arc(blueCircle.x, blueCircle.y, 20, 0, 2 * Math.PI, true);
+        ctx.fillStyle = '#0000FF'; // Blue color
+        ctx.fill();
+        ctx.closePath();
+      });
+
+      // Load stored red circle
+      const storedCircleX = sessionStorage.getItem('circleX');
+      const storedCircleY = sessionStorage.getItem('circleY');
+      const storedCircleColor = sessionStorage.getItem('circleColor') || '#FF0000'; // Default to red
+
+      if (storedCircleX && storedCircleY && storedCircleColor === '#FF0000') {
+        const x = parseInt(storedCircleX);
+        const y = parseInt(storedCircleY);
+
+        // Draw the red circle
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, 2 * Math.PI, true);
+        ctx.fillStyle = '#FF0000'; // Red color
+        ctx.fill();
+        ctx.closePath();
+      }
+    });
+
+    // On navigating to index.html, change the red dot to blue
+    window.addEventListener('beforeunload', function() {
+      if (currentCircle) {
+        // Store the new blue circle in localStorage
+        blueCircles.push(currentCircle);
+        localStorage.setItem('blueCircles', JSON.stringify(blueCircles));
+        
+        sessionStorage.setItem('circleColor', '#0000FF'); // Change to blue after index.html
+
+        
+      }
+    });
+    localStorage.clear()
+  </script>
+</body>
+</html>
